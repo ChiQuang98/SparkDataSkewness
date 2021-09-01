@@ -30,10 +30,6 @@ object DataSkewness {
     }
     import spark.implicits._
     val rdd = spark.sparkContext.parallelize(l)
-    val fields = List(
-      StructField("First Column", StringType, nullable = false),
-      StructField("Second Column", IntegerType, nullable = false)
-    )
    val df_salt = spark.createDataFrame(rdd).toDF("user_id","salt_id")
    users_df = users_df.join(broadcast(df_salt),users_df("id")===df_salt("user_id"),"left").
      withColumn("user_id_salt",functions.concat(col("id"),col("salt_id"))).drop(col("user_id"))
