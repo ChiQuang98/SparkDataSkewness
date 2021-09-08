@@ -1,6 +1,6 @@
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.functions.{broadcast, col, lit, monotonically_increasing_id, rand, round}
+import org.apache.spark.sql.functions.{broadcast, col, lit, monotonically_increasing_id, rand, round, when}
 import org.apache.spark.sql.types.{IntegerType, StringType, StructField, StructType}
 import org.apache.spark.sql.{Row, SparkSession, functions}
 
@@ -32,7 +32,7 @@ object DataSkewness {
     val rdd = spark.sparkContext.parallelize(l)
     val df_salt = spark.createDataFrame(rdd).toDF("user_id", "salt_id")
     users_df = users_df.join(broadcast(df_salt), users_df("id") === df_salt("user_id"), "left").
-      withColumn("user_id_salt", functions.concat(col("id"), col("salt_id"))).drop(col("user_id"))
+      withColumn("user_id_salt",when(df_salt("user_id").isNull,users_df("id")).otherwise( functions.concat(col("id"), col("salt_id")))).drop(col("user_id"))
     users_df.show(10, false)
     orders_df.printSchema()
     orders_df = orders_df.withColumn("user_id_salt", functions.when(col("user_id").isin(repli: _*),
