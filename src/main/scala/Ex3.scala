@@ -30,6 +30,5 @@ object Ex3 {
     )
     val least_seller = dfSales.where(col("rank_asc")===1)
 
-
   }
 }
